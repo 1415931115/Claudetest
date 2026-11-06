@@ -8,6 +8,7 @@ import { Hud } from './ui/hud'
 import { PerfMeter } from './ui/perfMeter'
 import { Inventory, COLS, ROWS, type Cell, type ItemSize } from './logic/inventory'
 import { SearchSession } from './logic/searchSession'
+import { shouldSimulate } from './logic/rules'
 
 const PEACH_SIZE: ItemSize = { w: 2, h: 2 }
 const PEACH_VALUE = 40
@@ -80,6 +81,10 @@ app.appendChild(hint)
 document.addEventListener('pointerlockchange', () => {
   const locked = document.pointerLockElement === canvas
   hint.style.opacity = locked ? '0' : '1'
+  if (!locked) {
+    searchHeld = false
+    endSearch(true)
+  }
 })
 
 function findFreeCell(size: ItemSize): Cell | null {
@@ -121,6 +126,7 @@ function completeSearch(): void {
   const cell = findFreeCell(PEACH_SIZE)
   if (cell === null) {
     hud.showToast('背包装不下')
+    sessions.delete(tree)
     endSearch(false)
     return
   }
@@ -154,6 +160,10 @@ function resetRun(reason: string, total: number): void {
   grove.reset()
   sessions.clear()
   fairy.reset()
+  searchHeld = false
+  activeTree = -1
+  player.setSearching(false)
+  hud.setSearchProgress(null)
   player.respawn(level.spawn)
   refreshBag()
 }
@@ -191,10 +201,12 @@ const clock = new THREE.Clock()
 function frame(): void {
   const delta = Math.min(clock.getDelta(), 0.05)
   player.update(delta)
-  updateSearch(delta)
-  updateExtraction()
-  if (fairy.update(delta, player) === 'killed') {
-    resetRun('被发现了', inventory.totalValue())
+  if (shouldSimulate(player.isPointerLocked())) {
+    updateSearch(delta)
+    updateExtraction()
+    if (fairy.update(delta, player) === 'killed') {
+      resetRun('被发现了', inventory.totalValue())
+    }
   }
   pipeline.render()
   perf.update(delta)

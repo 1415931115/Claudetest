@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { canChangeLamp } from '../logic/rules'
 
 const WALK_SPEED = 3.4
 const RUN_SPEED = 5.2
@@ -200,7 +201,9 @@ export class Player {
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
     if (event.code === 'KeyF' && this.locked) {
-      this.setLampTier((((this.tier as number) + 1) % 3) as LampTierIndex)
+      if (canChangeLamp(this.searching)) {
+        this.setLampTier((((this.tier as number) + 1) % 3) as LampTierIndex)
+      }
       return
     }
     this.keys.add(event.code)

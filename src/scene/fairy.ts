@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { FairyBrain, FairyState } from '../logic/fairyBrain'
+import { noiseRadius } from '../logic/rules'
 import type { Player } from './player'
 
 const PERCEPTION_INTERVAL = 0.1
@@ -69,7 +70,8 @@ export class Fairy {
       const step = this.perceptionTimer
       this.perceptionTimer = 0
       const sees = this.canSee(player, flatDistance)
-      const hears = player.speed() > 3.0 || player.isSearching()
+      const hears =
+        flatDistance <= noiseRadius(player.speed(), player.isSearching())
       this.brain.tick(step, sees, hears)
       if (sees) this.lastKnown.copy(target)
     }
