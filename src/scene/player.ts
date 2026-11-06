@@ -166,6 +166,13 @@ export class Player {
     return this.worldPosition
   }
 
+  respawn(at: THREE.Vector3): void {
+    this.worldPosition.set(at.x, EYE_STANDING, at.z)
+    this.horizontalSpeed = 0
+    this.searching = false
+    this.camera.position.copy(this.worldPosition)
+  }
+
   isPointerLocked(): boolean {
     return this.locked
   }
